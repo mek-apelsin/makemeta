@@ -1,16 +1,12 @@
 #!/usr/bin/env sh
 
 USAGE="MakeMeta, version 0.1
-Usage: ${0} -tv [-f control] [-d .deb]
+Usage: ${0} [FILE]
 
-   -d   .deb      Opens editor with template from file.
-   -f   control   Use control as file
-   -t             Use the default template
-   -v             Verbosity
+Creates a metapackage from a control-file, a debian-package, a
+list in a file or a list provided from standard input. An editor
+will open for quick edits, and a deb will be created in PWD. "
 
-Creates a metapackage from a control-file, a debian-package or
-opens an editor with a template control-file.  Default, or when
-control is -, read from standard input.  "
 
 TEMPLATE1="Package: 
 Version: 0.1
@@ -23,7 +19,8 @@ Description:
 "
 
 createpackagelist () {
-	while read line ; do TEMPSTRING="$TEMPSTRING $line" ; done ; echo "$TEMPSTRING" | sed -e 's:^ *::' -e 's: :, :g' -e 's:,\s*$::'
+	while read line ; do TEMPSTRING="$TEMPSTRING $line" ; done
+	echo "$TEMPSTRING" | sed -e 's:^ *::' -e 's: :, :g' -e 's:,\s*$::'
 }
 
 test -f "$1" && {
@@ -35,7 +32,7 @@ test -f "$1" && {
 
 TEMPDIR=`mktemp --tmpdir -d makemeta.XXXX`
 CONTROL="$TEMPDIR/DEBIAN/control"
-mkdir -p "`dirname $CONTROL`"
+mkdir -p "`dirname "$CONTROL"`"
 
 test "$FILETYPE" = "ctl" && {
 	cp "$FILE" "$CONTROL"
