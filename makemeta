@@ -45,16 +45,16 @@ test -z "$FILETYPE" && {
 	test -t 0 || exec </dev/tty
 }
 
-test "x$FILETYPE" = "xtmp" && {
+test "$FILETYPE" = "tmp" && {
 	echo "$TEMPLATE1" >  "$TEMPDIR"/DEBIAN/control
 	echo "$TEMPLATE2" >> "$TEMPDIR"/DEBIAN/control
 }
 
-test "x$FILETYPE" = "xdeb" && {
+test "$FILETYPE" = "deb" && {
 	dpkg-deb -e "$FILE" "$TEMPDIR"/DEBIAN
 }
 
-test "x$FILETYPE" = "xctl" && {
+test "$FILETYPE" = "ctl" && {
 	cp "$FILE" "$TEMPDIR"/DEBIAN
 }
 
