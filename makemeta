@@ -1,0 +1,68 @@
+#!/usr/bin/env sh
+
+USAGE="MakeMeta, version 0.1
+Usage: ${0} -tv [-f control] [-d .deb]
+
+   -d   .deb      Opens editor with template from file.
+   -f   control   Use control as file
+   -t             Use the default template
+   -v             Verbosity
+
+Creates a metapackage from a control-file, a debian-package or
+opens an editor with a template control-file.  Default, or when
+control is -, read from standard input.  "
+
+TEMPLATE1="Package: 
+Version: 0.1
+Section: main
+Priority: optional
+Architecture: all
+Depends: "
+TEMPLATE2="Maintainer: $USER
+Description: 
+
+"
+
+while getopts ":d:f:tv" flag; do
+	case $flag in
+	d) FILETYPE="deb" ; FILE="$OPTARG";;
+	f) FILETYPE="ctl" ; FILE="$OPTARG";;
+	t) FILETYPE="tmp" ;;
+	v) echo verbose ;;
+	\?) echo "$USAGE" ; exit 1 ;;
+	esac
+done
+shift `expr $OPTIND - 1`
+
+TEMPDIR=`mktemp --tmpdir -d makemeta.XXXX`
+mkdir -p "$TEMPDIR"/DEBIAN/
+
+test -z "$FILETYPE" && {
+	test -t 0 && echo "Type in the names of packages to depend of (press ^D when done):"
+	echo -n "$TEMPLATE1" >  "$TEMPDIR"/DEBIAN/control
+	while read line ; do TEMPSTRING="$TEMPSTRING $line" ; done ; echo "$TEMPSTRING" | sed -e 's:^ *::' -e 's: :, :g' >> "$TEMPDIR"/DEBIAN/control
+	echo "$TEMPLATE2" >> "$TEMPDIR"/DEBIAN/control
+	test -t 0 || exec </dev/tty
+}
+
+test "x$FILETYPE" = "xtmp" && {
+	echo "$TEMPLATE1" >  "$TEMPDIR"/DEBIAN/control
+	echo "$TEMPLATE2" >> "$TEMPDIR"/DEBIAN/control
+}
+
+test "x$FILETYPE" = "xdeb" && {
+	dpkg-deb -e "$FILE" "$TEMPDIR"/DEBIAN
+}
+
+test "x$FILETYPE" = "xctl" && {
+	cp "$FILE" "$TEMPDIR"/DEBIAN
+}
+
+FILETYPE="${FILETYPE:-ctl}"
+FILE="${FILE:-$TEMPDIR/DEBIAN/control}"
+
+${EDITOR:-editor} "$FILE"
+
+dpkg --build "$TEMPDIR" "`cat "$FILE" | grep "^Package: " | sed 's/^Package: //'`.deb"
+
+rm -rf "$TEMPDIR"
