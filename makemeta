@@ -20,49 +20,47 @@ Architecture: all
 Depends: "
 TEMPLATE2="Maintainer: $USER
 Description: 
-
 "
 
-while getopts ":d:f:tv" flag; do
-	case $flag in
-	d) FILETYPE="deb" ; FILE="$OPTARG";;
-	f) FILETYPE="ctl" ; FILE="$OPTARG";;
-	t) FILETYPE="tmp" ;;
-	v) echo verbose ;;
-	\?) echo "$USAGE" ; exit 1 ;;
-	esac
-done
-shift `expr $OPTIND - 1`
-
-TEMPDIR=`mktemp --tmpdir -d makemeta.XXXX`
-mkdir -p "$TEMPDIR"/DEBIAN/
-
-test -z "$FILETYPE" && {
-	test -t 0 && echo "Type in the names of packages to depend of (press ^D when done):"
-	echo -n "$TEMPLATE1" >  "$TEMPDIR"/DEBIAN/control
-	while read line ; do TEMPSTRING="$TEMPSTRING $line" ; done ; echo "$TEMPSTRING" | sed -e 's:^ *::' -e 's: :, :g' >> "$TEMPDIR"/DEBIAN/control
-	echo "$TEMPLATE2" >> "$TEMPDIR"/DEBIAN/control
-	test -t 0 || exec </dev/tty
+createpackagelist () {
+	while read line ; do TEMPSTRING="$TEMPSTRING $line" ; done ; echo "$TEMPSTRING" | sed -e 's:^ *::' -e 's: :, :g' -e 's:,\s*$::'
 }
 
-test "$FILETYPE" = "tmp" && {
-	echo "$TEMPLATE1" >  "$TEMPDIR"/DEBIAN/control
-	echo "$TEMPLATE2" >> "$TEMPDIR"/DEBIAN/control
+test -f "$1" && {
+	FILE="$1"
+	FILETYPE=lst
+	test "`echo "$FILE" | sed 's:.*\(.\{7\}\)$:\1:'`" = "control" && FILETYPE=ctl
+	file "$FILE" | grep "Debian binary package" > /dev/null && FILETYPE=deb
+}
+
+TEMPDIR=`mktemp --tmpdir -d makemeta.XXXX`
+CONTROL="$TEMPDIR/DEBIAN/control"
+mkdir -p "`dirname $CONTROL`"
+
+test "$FILETYPE" = "ctl" && {
+	cp "$FILE" "$CONTROL"
 }
 
 test "$FILETYPE" = "deb" && {
-	dpkg-deb -e "$FILE" "$TEMPDIR"/DEBIAN
+	dpkg-deb -e "$FILE" "`dirname $CONTROL`"
 }
 
-test "$FILETYPE" = "ctl" && {
-	cp "$FILE" "$TEMPDIR"/DEBIAN
+test "$FILETYPE" = "lst" && {
+	echo -n "$TEMPLATE1" >  "$CONTROL"
+	cat "$FILE" | createpackagelist >> "$CONTROL"
+	echo "$TEMPLATE2" >> "$CONTROL"
 }
 
-FILETYPE="${FILETYPE:-ctl}"
-FILE="${FILE:-$TEMPDIR/DEBIAN/control}"
+test -z "$FILETYPE" && {
+	FILETYPE=ctl
+	echo -n "$TEMPLATE1" >  "$CONTROL"
+	test -t 0 && echo >> "$CONTROL" || createpackagelist  >> "$CONTROL"
+	echo "$TEMPLATE2" >> "$CONTROL"
+	test -t 0 || exec </dev/tty
+}
 
-${EDITOR:-editor} "$FILE"
+${EDITOR:-editor} "$CONTROL"
 
-dpkg --build "$TEMPDIR" "`cat "$FILE" | grep "^Package: " | sed 's/^Package: //'`.deb"
+dpkg --build "$TEMPDIR" "`cat "$CONTROL" | grep "^Package: " | sed 's/^Package: //'`.deb"
 
 rm -rf "$TEMPDIR"
