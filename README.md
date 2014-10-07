@@ -2,7 +2,7 @@
 
 Creates metapackages (in deb format) for a list of packages. 
 
-# Metapackages? 
+## Metapackages? 
 
 A metapackage is a package which doesn't provide anything by itself, instead it depends on a whole range of other packages. 
 
@@ -12,7 +12,7 @@ Typical metapackages on an Ubuntu system are:
 	ubuntu-standard: A few extra packages which most people find quite handy on an cli-system.
 	ubuntu-desktop: All that graphical stuff which makes a laptop and desktop so darn nice. 
 
-# What is it for?
+## What is it for?
 
 You've ever installed that external script, website or compiled that program that needed all those extra libraries and other packages? Can't quite remember which package was installed for which program? Metapackages might just help. 
 
