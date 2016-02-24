@@ -19,8 +19,8 @@ Description:
 "
 
 createpackagelist () {
-	while read line ; do TEMPSTRING="$TEMPSTRING $line" ; done
-	echo "$TEMPSTRING" | sed -e 's:^ *::' -e 's: :, :g' -e 's:,\s*$::'
+	sed -e 's/,//g' -e 's/ *| */|/g' | tr ' ' '\n' | sort -u \
+		| paste -sd, | sed -e 's/,/, /g' -e 's/|/ | /g'
 }
 
 test -f "$1" && {
