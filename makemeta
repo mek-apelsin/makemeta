@@ -59,5 +59,3 @@ test -z "$FILETYPE" && {
 ${EDITOR:-editor} "$CONTROL"
 
 dpkg --build "$TEMPDIR" "`cat "$CONTROL" | grep "^Package: " | sed 's/^Package: //'`.deb"
-
-rm -rf "$TEMPDIR"
