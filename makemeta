@@ -30,7 +30,7 @@ test -f "$1" && {
 	file "$FILE" | grep "Debian binary package" > /dev/null && FILETYPE=deb
 }
 
-TEMPDIR=`mktemp --tmpdir -d makemeta.XXXX`
+TEMPDIR=`mktemp --tmpdir -d makemeta.XXXXXX`
 CONTROL="$TEMPDIR/DEBIAN/control"
 mkdir -p "`dirname "$CONTROL"`"
 
