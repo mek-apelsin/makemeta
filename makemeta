@@ -16,7 +16,7 @@ Architecture: all
 Depends: "
 TEMPLATE2="Maintainer: $USER
 Description: 
-"
+ "
 
 createpackagelist () {
 	sed -e 's/,//g' -e 's/ *| */|/g' | tr ' ' '\n' | sort -u \
