@@ -59,3 +59,5 @@ test -z "$FILETYPE" && {
 ${EDITOR:-editor} "$CONTROL"
 
 dpkg --build "$TEMPDIR" "`cat "$CONTROL" | grep "^Package: " | sed 's/^Package: //'`.deb"
+RETURN=$?
+test $RETURN = 0 && rm -rf "$TEMPDIR" || { echo Failure, files left in $TEMPDIR ; exit $RETURN ;}
